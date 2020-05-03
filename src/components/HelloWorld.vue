@@ -7,7 +7,7 @@
         </h2>
 
         <div class="my-2">
-          <v-btn color="primary" @click="$refs.file.click()">Upload</v-btn>
+          <v-btn color="primary" @click="$refs.file.click()">Add Icons</v-btn>
           <input
             type="file"
             ref="file"
@@ -17,6 +17,18 @@
             multiple
           />
         </div>
+
+        <div class="text-center">
+          <v-menu :close-on-content-click="false" offset-x z-index="100">
+            <template v-slot:activator="{ on }">
+              <v-btn :color="backgroundColor" dark v-on="on">
+                Background
+              </v-btn>
+            </template>
+
+            <v-color-picker v-model="backgroundColor"></v-color-picker>
+          </v-menu>
+        </div>
       </v-col>
 
       <v-col class="mb-5" cols="12">
@@ -24,12 +36,18 @@
           List Icons
         </h2>
 
-        <h3>Drag</h3>
+        <v-text-field
+          v-model="search"
+          clearable
+          flat
+          solo-inverted
+          hide-details
+          label="Search"
+        ></v-text-field>
         <draggable
           :list="icons"
           :disabled="!enabled"
           ghost-class="ghost"
-          :move="checkMove"
           @start="dragging = true"
           @end="dragging = false"
           v-bind="dragOptions"
@@ -40,28 +58,34 @@
             class="row"
           >
             <div
-              v-for="icon in icons"
+              v-for="icon in filteredIcons"
               v-bind:key="icon.id"
-              class="list-group list-group-item col col-2"
+              class="list-group list-group-item col col-xl-1 col-lg-2 col-md-3 col-sm-4"
             >
               <v-card max-width="400">
-                <div style="padding: 10px; background-color: #123541">
+                <div
+                  v-bind:style="{
+                    padding: '10px',
+                    backgroundColor: backgroundColor
+                  }"
+                >
                   <v-img
                     class="white--text align-end"
-                    height="200px"
+                    height="100px"
                     :src="icon.url"
                     contain
                     aspect-ratio="1"
                   >
                   </v-img>
                 </div>
-                <v-card-subtitle>
-                  <a
-                    :id="'icon-filename-' + icon.id"
-                    @click="copyLabel('icon-filename-' + icon.id)"
-                    >{{ icon.filename }}</a
-                  >
-                </v-card-subtitle>
+                <v-card-text
+                  @click="copyLabel('icon-filename-' + icon.id)"
+                  class="card-text"
+                >
+                  <p :id="'icon-filename-' + icon.id">
+                    {{ icon.filename }}
+                  </p>
+                </v-card-text>
               </v-card>
             </div>
           </transition-group>
@@ -97,7 +121,9 @@ export default Vue.extend({
     snackbar: "",
     showSnackbar: false,
     enabled: true,
-    dragging: false
+    dragging: false,
+    backgroundColor: "#dddddd",
+    search: ""
   }),
   computed: {
     dragOptions() {
@@ -107,6 +133,14 @@ export default Vue.extend({
         disabled: false,
         ghostClass: "ghost"
       };
+    },
+    filteredIcons() {
+      if (this.search) {
+        return this.icons.filter(
+          icon => icon.filename.toLowerCase().indexOf(this.search) !== -1
+        );
+      }
+      return this.icons;
     }
   },
   methods: {
@@ -165,5 +199,8 @@ export default Vue.extend({
 }
 .list-group-item i {
   cursor: pointer;
+}
+.card-text {
+  cursor: copy;
 }
 </style>
