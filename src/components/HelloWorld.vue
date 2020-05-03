@@ -24,29 +24,48 @@
           List Icons
         </h2>
 
-        <v-row>
-          <v-col v-for="icon in icons" v-bind:key="icon.id" :cols="2">
-            <v-card class="mx-auto" max-width="400">
-              <div style="padding: 10px;">
-                <v-img
-                  class="white--text align-end"
-                  height="200px"
-                  :src="icon.url"
-                  contain
-                  aspect-ratio="1"
-                >
-                </v-img>
-              </div>
-              <v-card-subtitle>
-                <a
-                  :id="'icon-filename-' + icon.id"
-                  @click="copyLabel('icon-filename-' + icon.id)"
-                  >{{ icon.filename }}</a
-                >
-              </v-card-subtitle>
-            </v-card></v-col
+        <h3>Drag</h3>
+        <draggable
+          :list="icons"
+          :disabled="!enabled"
+          ghost-class="ghost"
+          :move="checkMove"
+          @start="dragging = true"
+          @end="dragging = false"
+          v-bind="dragOptions"
+        >
+          <transition-group
+            type="transition"
+            :name="!dragging ? 'flip-list' : null"
+            class="row"
           >
-        </v-row>
+            <div
+              v-for="icon in icons"
+              v-bind:key="icon.id"
+              class="list-group list-group-item col col-2"
+            >
+              <v-card max-width="400">
+                <div style="padding: 10px; background-color: #123541">
+                  <v-img
+                    class="white--text align-end"
+                    height="200px"
+                    :src="icon.url"
+                    contain
+                    aspect-ratio="1"
+                  >
+                  </v-img>
+                </div>
+                <v-card-subtitle>
+                  <a
+                    :id="'icon-filename-' + icon.id"
+                    @click="copyLabel('icon-filename-' + icon.id)"
+                    >{{ icon.filename }}</a
+                  >
+                </v-card-subtitle>
+              </v-card>
+            </div>
+          </transition-group>
+        </draggable>
       </v-col>
     </v-row>
     <v-snackbar v-model="showSnackbar" :timeout="2000" color="success">
@@ -58,6 +77,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { v4 as uuidv4 } from "uuid";
+import draggable from "vuedraggable";
 
 interface IconDataIntarface {
   id: number | string;
@@ -68,12 +88,27 @@ interface IconDataIntarface {
 
 export default Vue.extend({
   name: "HelloWorld",
+  components: {
+    draggable
+  },
 
   data: () => ({
     icons: [] as IconDataIntarface[],
     snackbar: "",
-    showSnackbar: false
+    showSnackbar: false,
+    enabled: true,
+    dragging: false
   }),
+  computed: {
+    dragOptions() {
+      return {
+        animation: 200,
+        group: "description",
+        disabled: false,
+        ghostClass: "ghost"
+      };
+    }
+  },
   methods: {
     onFileChange: function(event: Event) {
       const target = event.target as HTMLInputElement;
@@ -107,3 +142,28 @@ export default Vue.extend({
   }
 });
 </script>
+
+<style scoped>
+.button {
+  margin-top: 35px;
+}
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
+}
+.ghost {
+  opacity: 0.5;
+  background: #c8ebfb;
+}
+.list-group {
+  min-height: 20px;
+}
+.list-group-item {
+  cursor: move;
+}
+.list-group-item i {
+  cursor: pointer;
+}
+</style>
